@@ -7,6 +7,11 @@
     <script src="jquery.splink.js"></script>
     <style>
       
+      section {
+        width: 75%;
+        margin: 2rem auto;
+      }
+      
       a:after {
         content: "   " attr(href);
       }
@@ -15,20 +20,22 @@
   </head>
   <body>
     <section id="main">
+      <!--<article class="post">-->
         <h1>Title Page</h1>
         <a class="post-link" href="post1.html" data-splink-selector="article.post">Post 1</a>
+      <!-- </article> -->
     </section>
     <p>Outside SECTION text: index</p>
     
     
     <script>
       
-      $(document).ready(function() {
-        $("a").attr("href", "asldjkfalskdjfa.html");
-      });
+      window.sessionStorage.clear()
       
+      $("a").attr("href", "post1.html");
+
       $(".post-link").splink("#main", function() {
-        console.log("there we go.");
+        console.log("splink callback");
       });
     </script>    
   </body>
