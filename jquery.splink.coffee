@@ -92,7 +92,8 @@ do ( $ = jQuery ) ->
 		session   = window.sessionStorage
 		elements	= @
 		target    = $(targetSelector)
-		
+		html 			= $("html")
+
 		window.addEventListener "popstate", (e) ->
 			target.html(session[window.location.pathname])
 
@@ -100,7 +101,7 @@ do ( $ = jQuery ) ->
 			link  = @
 			$link = $(@)
 			url  = link.href
-			selector = $link.attr("data-splink-selector")
+			selector = $link.attr("data-splink-selector") or ""
 			response 	= undefined
 
 			$link.click (event) ->
@@ -108,21 +109,41 @@ do ( $ = jQuery ) ->
 
 				if session[url]
 					target.html(session[url])
-				else
-					session[window.location.pathname] = target.html()
+					window.history.pushState(null, null, url)
 
+				else
+					unless session[window.location.pathname]
+						session[window.location.pathname] = target.html()
+
+					target.load("#{url} #{selector}", (response, status, xhr) ->
+						if status is error
+							console.log "#{xhr.status} #{xhr.statusText}"
+
+						else if status is "success" or status is "notmodified"
+							window.history.pushState(null, null, url)
+							session[window.location.pathname] = target.html()
+
+						callback(response, status, xhr)
+					)
+
+					###
 					$.ajax(
 						url: url
 						type: "GET"
 						dataType: "html"
-					).done(( responseText ) ->
+						context: document.documentElement
+						beforeSend: (jqXHR, settings) ->
+							$(settings.context).addClass("splink-loading")
 
-						# CoffeeScript flubs arguments to _arguments, so use a short embedded JS string here.
+					).done(( responseText, textStatus, jqXHR ) ->
 						`response = arguments`						
-
-						# cribbed from .load
 						target.html if selector then $("<div>").append($.parseHTML(responseText)).find(selector) else responseText
 
-					).complete( callback and (jqXHR, status) ->
-						self.each( callback, response or [ jqXHR.responseText, status, jqXHR ] )
+					).fail((  jqXHR, textStatus, errorThrown ) ->
+						console.error errorThrown
+
+					).always( callback and (jqXHR, status) ->
+						$(this).removeClass("splink-loading")
+						link.each( callback, response or [ jqXHR.responseText, status, jqXHR ] )
 					)
+					###
