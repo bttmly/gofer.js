@@ -4,6 +4,8 @@
 
 Mimics jQuery's .load() method, but adds in the history API.
 
+splink = **s**tatic **p**ushState **link**
+
 ### Use Case
 
 The typical use case would be for a blog. Generally, users are navigating from post to post. The content of the post changes but probably nothing else does... so why reload the whole page? Instead, just swap out the current post's HTML for the new post's HTML.
