@@ -8,7 +8,7 @@ do ( $ = jQuery ) ->
       dataAttr    : "data-splink-selector"
       loadingClass: "splink-loading"
       animate     : false
-      cbAjaxOnly  : true
+      cbAlways    : true
 
     if options
       if $.isFunction(options)
