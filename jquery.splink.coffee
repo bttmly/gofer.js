@@ -91,5 +91,8 @@ do ( $ = jQuery ) ->
         )
         
         return
+
     return this
+
   return
+  
