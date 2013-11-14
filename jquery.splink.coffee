@@ -8,6 +8,7 @@ do ( $ = jQuery ) ->
       dataAttr    : "data-splink-selector"
       loadingClass: "splink-loading"
       animate     : false
+      cbAjaxOnly  : true
 
     if options
       if $.isFunction(options)
@@ -25,11 +26,9 @@ do ( $ = jQuery ) ->
       $html       : $("html")
       $body       : $("body")
     
-    ###
-    window.bind "popstate", (event) ->
+    window.addEventListener "popstate", (event) ->
       s.$target.html(s.session[window.location.pathname])
       return
-    ###
 
     s.$body.on "click", "#{s.$selector}", (event) ->
       event.preventDefault()
@@ -46,6 +45,7 @@ do ( $ = jQuery ) ->
         window.history.pushState(null, null, e.path)
         console.log "html pulled from sessionStorage"
         return
+        
       else
         unless s.session[window.location.pathname]
           s.session[window.location.pathname] = s.$target.html()
@@ -53,15 +53,16 @@ do ( $ = jQuery ) ->
         # slightly modified AJAX call cribbed from the jQuery.fn.load function
         # setting context gives us $(this) = s.$target in all callbacks.
         $.ajax(
-          url        : e.href
+          url        : e.path
           type       : "GET"
           dataType   : "html"
           context    : s.$target
           beforeSend : (xhr, settings) ->
             settings.context.addClass(config.loadingClass)
+            
         ).done((responseText) ->
           e.html = do ->
-            if s.subselector
+            if e.subselector
               # If a selector was specified, locate the right elements in a dummy div
               # Exclude scripts to avoid IE 'Permission Denied' errors
               return jQuery("<div>").append(jQuery.parseHTML(responseText)).find(e.subselector) 
@@ -70,42 +71,25 @@ do ( $ = jQuery ) ->
               return responseText
 
           if e.html.length
-            s.session[e.href] = $(this).html(e.html).html()
+            s.session[e.path] = $(this).html(e.html).html()
             window.history.pushState(null, null, e.href)
           else
             # figure out what to do with an empty response.
             console.warn("No HTML returned")
-
+            
         ).fail((xhr, status, error) ->
           console.error(error)
-        ).always((text, status, xhr) ->
           
+        ).always((text, status, xhr) ->
           response =
             text : text
             status : status
             xhr : xhr
-
           $(this).removeClass(config.loadingClass)
-
           if callback?
             callback(response, $(this), e.html)
         )
         
-        
-        ###
-        s.$target.load "#{e.href} #{e.subselector}", (response, status, xhr) ->
-          # console.log response
-          # console.log status
-          # console.log xhr
-          if status is "error"
-            console.log "#{xhr.status} #{xhr.statusText}"
-          else
-            window.history.pushState(null, null, e.href)
-            s.session[window.location.pathname] = s.$target.html()
-          callback(response, status, xhr)
-          return
-        ###
-
         return
     return this
   return

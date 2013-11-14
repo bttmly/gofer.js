@@ -27,12 +27,9 @@
       $html: $("html"),
       $body: $("body")
     };
-    /*
-    window.bind "popstate", (event) ->
-      s.$target.html(s.session[window.location.pathname])
-      return
-    */
-
+    window.addEventListener("popstate", function(event) {
+      s.$target.html(s.session[window.location.pathname]);
+    });
     s.$body.on("click", "" + s.$selector, function(event) {
       var e;
       event.preventDefault();
@@ -52,7 +49,7 @@
           s.session[window.location.pathname] = s.$target.html();
         }
         $.ajax({
-          url: e.href,
+          url: e.path,
           type: "GET",
           dataType: "html",
           context: s.$target,
@@ -61,14 +58,14 @@
           }
         }).done(function(responseText) {
           e.html = (function() {
-            if (s.subselector) {
+            if (e.subselector) {
               return jQuery("<div>").append(jQuery.parseHTML(responseText)).find(e.subselector);
             } else {
               return responseText;
             }
           })();
           if (e.html.length) {
-            s.session[e.href] = $(this).html(e.html).html();
+            s.session[e.path] = $(this).html(e.html).html();
             return window.history.pushState(null, null, e.href);
           } else {
             return console.warn("No HTML returned");
@@ -87,20 +84,6 @@
             return callback(response, $(this), e.html);
           }
         });
-        /*
-        s.$target.load "#{e.href} #{e.subselector}", (response, status, xhr) ->
-          # console.log response
-          # console.log status
-          # console.log xhr
-          if status is "error"
-            console.log "#{xhr.status} #{xhr.statusText}"
-          else
-            window.history.pushState(null, null, e.href)
-            s.session[window.location.pathname] = s.$target.html()
-          callback(response, status, xhr)
-          return
-        */
-
       }
     });
     return this;
