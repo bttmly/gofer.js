@@ -3,7 +3,7 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
   __slice = [].slice;
 
 (function($) {
-  var attach, beginPrefetch, config, detatch, fnSplink, handleClick, handlePop, makeConfig, prefetch, preloadImages, putAndPush, queueRequest, shiftQueue, splinkCache, splinkGo, splinkLoad, splinkOff, storeThisPage, utils;
+  var attach, beginPrefetch, config, detatch, fnSplink, handleClick, handlePop, makeConfig, pathOk, prefetch, preloadImages, putAndPush, queueRequest, shiftQueue, splinkCache, splinkGo, splinkLoad, splinkOff, storeThisPage, utils;
   config = {};
   makeConfig = function(context, where, options, callback) {
     var defaults, i, o, settings, splinkConfiguration, _i, _len;
@@ -16,7 +16,8 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
       preloadImg: true,
       runScripts: false,
       customData: {},
-      customHeader: []
+      customHeader: [],
+      maxErrors: 2
     };
     config = {
       links: context,
@@ -29,7 +30,8 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
       targets: [],
       imgCache: [],
       $targets: {},
-      limit: 0
+      limit: 0,
+      errors: {}
     };
     if (typeof where === "string") {
       config.targets[0] = config.$targets[where] = $(where);
@@ -60,9 +62,6 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
   handleClick = function(link) {
     var path;
     path = link.pathname;
-    if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
-    }
     if (window.sessionStorage[path] != null) {
       putAndPush(path, true);
       if (config.callback) {
@@ -89,6 +88,9 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
         if (!$(this).is(active)) {
           return;
         }
+      }
+      if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return this;
       }
       if (this.tagName.toUpperCase() !== 'A') {
         return this;
@@ -182,16 +184,25 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
           first = false;
           actualPut();
         }
-        return $(this).animate({
+        $(this).animate({
           opacity: 1
+        }, duration);
+        return config.$body.animate({
+          scrollTop: 0
         }, duration);
       });
     } else {
       actualPut();
+      config.$body.scrollTop();
     }
     config.$window.trigger("splinkUpdate", config.selectors);
   };
   splinkLoad = function(path, immediate) {
+    var errorCount;
+    if (!okPath(path)) {
+      return false;
+    }
+    errorCount = 0;
     if (immediate) {
       config.$html.addClass(config.loadingClass);
     }
@@ -207,7 +218,11 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
         }
       },
       error: function(xhr, status, error) {
-        return console.error(error);
+        console.error(error);
+        if (immediate && errorCount < config.maxErrors) {
+          errorCount++;
+          return splinkLoad(path, true);
+        }
       },
       success: function(data, status, xhr) {
         var $data, i, scripts, selector, tempArr, _i, _len, _ref;
@@ -216,9 +231,9 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
         if (config.runScripts) {
           scripts = $data.find("script");
           if (scripts.length) {
-            scripts.each(function() {
+            scripts.each(function(i) {
               if (this.text.length) {
-                return $.globalEval($(this));
+                return $.globalEval(this.text);
               } else if (this.src) {
                 console.log("get " + this.src);
                 return $.globalEval("<script src='" + this.src + "'></script>");
@@ -312,6 +327,24 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
   splinkCache = function(path) {
     return queueRequest(path);
   };
+  pathOk = function(path) {
+    var tempLink;
+    tempLink = document.createElement("a");
+    tempLink.href = path;
+    if (location.protocol !== tempLink.protocol) {
+      return false;
+    }
+    if (location.hostname !== tempLink.hostname) {
+      return false;
+    }
+    if (tempLink.hash && tempLink.href.replace(tempLink.hash, '') === location.href.replace(location.hash, '')) {
+      return false;
+    }
+    if (tempLink.href === location.href + '#') {
+      return false;
+    }
+    return true;
+  };
   attach = function() {
     $.fn.splink = fnSplink;
     $.splink = {};
@@ -342,7 +375,8 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
     arr = arguments[0], vals = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
     for (_i = 0, _len = vals.length; _i < _len; _i++) {
       val = vals[_i];
-      if ((spot = arr.indexOf(val)) !== -1) {
+      spot = arr.indexOf(val);
+      if (spot !== -1) {
         arr.splice(spot, 1);
       }
     }

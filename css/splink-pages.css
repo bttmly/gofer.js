@@ -31,3 +31,27 @@ img {
 	height: 100%;
 	background-image: linear-gradient(transparent, white);
 }
+
+code, pre {
+	font-family: source-code-pro, consolas, monospace;
+	tab-size: 4;
+}
+
+p {
+	line-height: 1.5rem;
+}
+
+pre {
+	padding: 1rem;
+	border: 1px solid #ddd;
+	background: #eee;
+	border-radius: .25rem;
+}	
+}
+
+p code {
+	padding: .125rem .25rem;
+	border: 1px solid #ddd;
+	background: #eee;
+	border-radius: .25rem;
+}
