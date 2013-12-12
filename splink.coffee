@@ -24,7 +24,6 @@ do ( $ = jQuery ) ->
       runScripts   : false
       customData   : {}
       customHeader : []
-      maxErrors    : 2 # maximum number of times to retry a failed request.
 
     config = 
       links   : context
@@ -38,7 +37,6 @@ do ( $ = jQuery ) ->
       imgCache  : []
       $targets  : {}
       limit     : 0
-      errors    : {}
 
     # the where argument can be an a boolean, a string, an object, or an array.
     # we've alrady handled the where = false case.
@@ -81,9 +79,8 @@ do ( $ = jQuery ) ->
 
     # Middle click, cmd click, and ctrl click should open
     # links in a new tab as normal.
-    #
-    # if event.which > 1 or event.metaKey or event.ctrlKey or event.shiftKey or event.altKey
-    #   return
+    if event.which > 1 or event.metaKey or event.ctrlKey or event.shiftKey or event.altKey
+      return
 
     # Check if we have it in storage. If so, grab the HTML and update the DOM with it.
     #   Then, if the callback exists, run it, with type = "local", indicating the HTML was retrieved from storage.
@@ -112,14 +109,9 @@ do ( $ = jQuery ) ->
 
     config.$body.on "click", "#{config.selector}", (event) ->
 
-      # limits splink action to the first {limit} links on the page that match config.selector
-      # since the number of matching links might change, we have to get a new jQuery object and check it each time.
       if config.limit
         active = $(config.selector).slice(0, limit)
         return unless $(this).is(active)
-
-      if event.which > 1 or event.metaKey or event.ctrlKey or event.shiftKey or event.altKey
-        return this
 
       # This series of conditions are appropriated from pjax.
       if this.tagName.toUpperCase() isnt 'A'
@@ -218,30 +210,26 @@ do ( $ = jQuery ) ->
             actualPut()
           $( this ).animate
             opacity: 1, duration
-          config.$body.animate
-            scrollTop: 0, duration
-
     else
       actualPut()
-      config.$body.scrollTop()
 
     config.$window.trigger( "splinkUpdate", config.selectors )
     return
 
-  # public
-  # this function is where AJAX requests are issued.
-  # arguments:
-  # path -- the pathname used in the url request. All requests kept to this host & protocol.
-  # immediate -- load the HTML into the target elements as soon as the request finishes? optional boolean
-  #   requests from beginPrefetch() have immediate = false
-  #   requests initiated by a click event have immediate = true
-  
+    # public
+    # this function is where AJAX requests are issued.
+    # arguments:
+    # path -- the pathname used in the url request. All requests kept to this host & protocol.
+    # immediate -- load the HTML into the target elements as soon as the request finishes? optional boolean
+    #   requests from beginPrefetch() have immediate = false
+    #   requests initiated by a click event have immediate = true
+    # config -- internally, we'll be passing around the config object.
+    #           a public call to this would have to be an object with targets and selectors properties, and optionally a callback property
+    #           targets should be an array of jQuery objects representing where HTML should be inserted
+    #           selectors should be an array of CSS selector strings, used to find HTML snippets in the returned document. 
+    #             They're associated with the target at the same array index position.
+
   splinkLoad = ( path, immediate ) ->
-
-    unless okPath( path )
-      return false
-
-    errorCount = 0
 
     if immediate
       config.$html.addClass(config.loadingClass)
@@ -260,10 +248,6 @@ do ( $ = jQuery ) ->
       error : ( xhr, status, error ) ->
         console.error( error ) 
 
-        if immediate and errorCount < config.maxErrors
-          errorCount++
-          splinkLoad( path, true )
-
       success : ( data, status, xhr ) ->
         
         $data = $(data)
@@ -272,9 +256,9 @@ do ( $ = jQuery ) ->
         if config.runScripts
           scripts = $data.find( "script" )
           if scripts.length
-            scripts.each ( i ) ->
+            scripts.each ->
               if this.text.length
-                $.globalEval( this.text )
+                $.globalEval( $( this ) )
               else if this.src
                 console.log "get #{this.src}"
                 $.globalEval("<script src='#{this.src}'></script>")
@@ -305,7 +289,7 @@ do ( $ = jQuery ) ->
         console.log ( "request to #{path} complete: #{status}" )
 
         if immediate
-          $( this ).removeClass( config.loadingClass )
+          $(this).removeClass( config.loadingClass )
         
           if config.callback
 
@@ -320,13 +304,13 @@ do ( $ = jQuery ) ->
     i = 0
 
     while i < images.length
-      image = images.eq( i )
+      image = images.eq(i)
       src = image.attr( "src" )
 
       unless src in config.imgCache
         img = new Image()
         img.src = src
-        config.imgCache.push( src )
+        config.imgCache.push(src)
 
       i++
 
@@ -376,22 +360,6 @@ do ( $ = jQuery ) ->
   splinkCache = ( path ) ->
     queueRequest( path )
 
-  # use this for checking if we should get path
-  pathOk = ( path ) ->
-    tempLink = document.createElement( "a" )
-    tempLink.href = path
-    if location.protocol isnt tempLink.protocol
-      return false
-    if location.hostname isnt tempLink.hostname
-      return false
-    if tempLink.hash and tempLink.href.replace( tempLink.hash, '' ) is location.href.replace( location.hash, '' )
-      return false
-    if tempLink.href is location.href + '#'
-      return false
-    return true
-
-
-
   attach = ->
     $.fn.splink      = fnSplink
     $.splink         = {}
@@ -422,9 +390,10 @@ do ( $ = jQuery ) ->
 
   utils.removeVals = ( arr, vals... ) ->
     for val in vals
-      spot = arr.indexOf( val )
-      if spot isnt -1
-        arr.splice( spot, 1 )
+      if (spot = arr.indexOf(val)) isnt -1
+        arr.splice(spot, 1)
     return arr
 
   return
+
+#
