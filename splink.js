@@ -4,7 +4,17 @@
     __slice = [].slice;
 
   (function($) {
-    var attach, beginPrefetch, config, detatch, fnSplink, handleClick, handlePop, makeConfig, prefetch, preloadImages, putAndPush, queueRequest, shiftQueue, splinkCache, splinkGo, splinkLoad, splinkOff, storeThisPage, utils;
+    return $.fn.outerHTML = function(str) {
+      if (str) {
+        return this.before(str).remove();
+      } else {
+        return $("<p>").append(this.eq(0).clone()).html();
+      }
+    };
+  })(jQuery);
+
+  (function($) {
+    var attach, beginPrefetch, config, detatch, fnSplink, handleClick, handlePop, injectScriptTags, makeConfig, prefetch, preloadImages, putAndPush, queueRequest, shiftQueue, splinkCache, splinkGo, splinkLoad, splinkOff, storeThisPage, utils;
     config = {};
     makeConfig = function(context, where, options, callback) {
       var defaults, i, o, settings, splinkConfiguration, _i, _len;
@@ -15,7 +25,7 @@
         animate: 250,
         stripOut: false,
         preloadImg: true,
-        runScripts: false,
+        runScripts: true,
         customData: {},
         customHeader: []
       };
@@ -58,7 +68,7 @@
       }
       return splinkConfiguration = $.extend(true, {}, defaults, options, config);
     };
-    handleClick = function(link) {
+    handleClick = function(event, link) {
       var path;
       path = link.pathname;
       if (event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
@@ -107,7 +117,7 @@
           return this;
         }
         event.preventDefault();
-        return handleClick(this);
+        return handleClick(event, this);
       });
       $(window).on("popstate", function(event) {
         return handlePop(event);
@@ -152,6 +162,18 @@
         }
       });
     };
+    injectScriptTags = function() {
+      return $(".script-placeholder").each(function() {
+        var key, replacer, val, _ref;
+        replacer = $("<script>");
+        _ref = $(this).data();
+        for (key in _ref) {
+          val = _ref[key];
+          replacer.attr(key, val);
+        }
+        return $(this).replaceWith(replacer);
+      });
+    };
     putAndPush = function(path, pushIt) {
       var actualPush, actualPut, duration, first, partials;
       partials = JSON.parse(window.sessionStorage.getItem(path));
@@ -161,6 +183,9 @@
         for (i = _i = 0, _len = partials.length; _i < _len; i = ++_i) {
           partial = partials[i];
           config.$targets[partial.target].html(partial.html);
+        }
+        if (config.runScripts) {
+          injectScriptTags();
         }
         if (pushIt) {
           actualPush();
@@ -211,27 +236,26 @@
           return console.error(error);
         },
         success: function(data, status, xhr) {
-          var $data, i, scripts, selector, tempArr, _i, _len, _ref;
-          $data = $(data);
+          var $data, i, selector, tempArr, _i, _len, _ref;
           tempArr = [];
+          window.splinkScripts || (window.splinkScripts = []);
+          $data = $(data);
           if (config.runScripts) {
-            scripts = $data.find("script");
-            if (scripts.length) {
-              scripts.each(function() {
-                if (this.text.length) {
-                  return $.globalEval($(this));
-                } else if (this.src) {
-                  console.log("get " + this.src);
-                  return $.globalEval("<script src='" + this.src + "'></script>");
-                }
+            console.log($(data).find(".content"));
+            $data.find("script").each(function(i, el) {
+              var replacer;
+              replacer = $("<div class='script-placeholder'>");
+              $.each(this.attributes, function(i, attr) {
+                return replacer.attr("data-" + attr.name, attr.value);
               });
-            }
+              return $(this).replaceWith(replacer);
+            });
           }
           _ref = config.selectors;
           for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
             selector = _ref[i];
             tempArr[i] = {};
-            tempArr[i].html = $data.find(selector).html();
+            tempArr[i].html = $("<div>").append($data).find(selector).html() || "oops";
             tempArr[i].target = config.targets[i].selector;
             if (!immediate && config.preloadImg) {
               preloadImages(tempArr[i].html);

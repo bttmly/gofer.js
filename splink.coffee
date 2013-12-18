@@ -1,4 +1,10 @@
 do ( $ = jQuery ) ->
+  $.fn.outerHTML = ( str ) ->
+    if str then this.before( str ).remove() else $( "<p>" ).append( this.eq(0).clone() ).html()
+
+
+
+do ( $ = jQuery ) ->
 
   # Internal.
   # Config is private
@@ -21,7 +27,7 @@ do ( $ = jQuery ) ->
       animate      : 250
       stripOut     : false
       preloadImg   : true
-      runScripts   : false
+      runScripts   : true
       customData   : {}
       customHeader : []
 
@@ -73,7 +79,7 @@ do ( $ = jQuery ) ->
     return splinkConfiguration = $.extend( true, {}, defaults, options, config )
 
   # handleClick() is bound to elements matching the selector on which splink is called.
-  handleClick = ( link ) ->
+  handleClick = ( event, link ) ->
 
     path = link.pathname
 
@@ -131,7 +137,7 @@ do ( $ = jQuery ) ->
 
       event.preventDefault()
 
-      handleClick( this )
+      handleClick( event, this )
 
     # This handles popstate events, generally, the back button
     # remove previously attached handlers before attaching
@@ -182,6 +188,14 @@ do ( $ = jQuery ) ->
 
     return
 
+  injectScriptTags = ->
+    $( ".script-placeholder" ).each ->
+      replacer = $("<script>")
+      for key, val of $( this ).data()
+        replacer.attr( key, val )
+      $( this ).replaceWith( replacer )
+
+
   # really need to pick a better name for this.
   putAndPush = ( path, pushIt ) ->
 
@@ -191,6 +205,8 @@ do ( $ = jQuery ) ->
     actualPut = ->
       for partial, i in partials
         config.$targets[partial.target].html( partial.html )
+      if config.runScripts
+        injectScriptTags()
       if pushIt
         actualPush()
       if config.prefetch
@@ -249,32 +265,32 @@ do ( $ = jQuery ) ->
         console.error( error ) 
 
       success : ( data, status, xhr ) ->
-        
-        $data = $(data)
-        tempArr = []
 
+        tempArr = []
+        window.splinkScripts or= []
+        
+        $data = $( data )
+
+        
         if config.runScripts
-          scripts = $data.find( "script" )
-          if scripts.length
-            scripts.each ->
-              if this.text.length
-                $.globalEval( $( this ) )
-              else if this.src
-                console.log "get #{this.src}"
-                $.globalEval("<script src='#{this.src}'></script>")
-          # $data.find('script').each ->
-          #   console.log "script!"
-          #   console.log this
-          #   $.globalEval( this.text or this.textContent or this.innerHTML or '' )
+
+          console.log $( data ).find( ".content" )
+          $data.find( "script" ).each (i, el) ->
+            replacer = $("<div class='script-placeholder'>")
+            $.each this.attributes, ( i, attr ) ->
+              replacer.attr( "data-#{ attr.name }", attr.value )
+            $( this ).replaceWith( replacer )
 
         for selector, i in config.selectors
 
           tempArr[i] = {}
-          # tempArr[i].html = $( "<div>" ).append( $.parseHTML(data) ).find( selector ).html() or "oops"
-          tempArr[i].html = $data.find(selector).html()
+          tempArr[i].html = $( "<div>" ).append( $data ).find( selector ).html() or "oops"
+          # tempArr[i].html = $data.find(selector).html()
           tempArr[i].target = config.targets[i].selector
           if not immediate and config.preloadImg
             preloadImages( tempArr[i].html )
+
+
 
         window.sessionStorage.setItem( path, JSON.stringify( tempArr ) )
 
