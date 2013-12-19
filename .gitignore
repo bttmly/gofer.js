@@ -1,3 +1,4 @@
 *.sh
 *.jade
 jade
+coffee
