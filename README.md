@@ -3,7 +3,13 @@
 
 *previously jquery.Splink*
 
-## Gofer goes and gets it
+## go·fer
+### /ˈgōfər/
+*noun informal*
+1. a person who runs errands.
+
+
+#### Gofer goes and gets it
   - Asynchonous HTML retreival
   - Cached locally
   - Inserted into document dynamically
