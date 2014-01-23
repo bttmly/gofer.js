@@ -12,22 +12,22 @@
   </head>
   <body>
     <div class="wrapper">
-      <h1>Splink</h1>
+      <h1>Gofer</h1>
       <div class="content">
         <h2>Overview</h2>
-        <p>Splink was inspired by <a href="https://github.com/defunkt/jquery-pjax">pjax</a>, and actually has some code borrowed from it. The concept is similar to pjax as well: define a target container and load content into that container asynchronously, while taking advantage of the history API to make sensible URLs. However, Splink expands on this premise in a few key ways:</p>
+        <p>Gofer was inspired by <a href="https://github.com/defunkt/jquery-pjax">pjax</a>, and actually has some code borrowed from it. The concept is similar to pjax as well: define a target container and load content into that container asynchronously, while taking advantage of the history API to make sensible URLs. However, Gofer expands on this premise in a few key ways:</p>
         <ul>
           <li>Works with static HTML</li>
           <li>Gets content before the user asks for it.</li>
           <li>Stores content in sessionStorage</li>
         </ul>
-        <p>Originally my plan was just to write something like pjax for static HTML; essentially, a more involved version of <a href="http://api.jquery.com/load/">jQuery's .load method.</a> The obvious downside of this relative to pjax is that you are likely grabbing more data than you need since you're targeting a few elements within a larger string of returned HTML. On the other hand, it works on static sites like this one. Yes, Splink works on GitHub Pages. Another cool thing about working with full static HTML pages is that you get permalinks for free.</p>
+        <p>Originally my plan was just to write something like pjax for static HTML; essentially, a more involved version of <a href="http://api.jquery.com/load/">jQuery's .load method.</a> The obvious downside of this relative to pjax is that you are likely grabbing more data than you need since you're targeting a few elements within a larger string of returned HTML. On the other hand, it works on static sites like this one. Yes, Gofer works on GitHub Pages. Another cool thing about working with full static HTML pages is that you get permalinks for free.</p>
         <p>I think the coolest part is retreiving content before a user asks for it. Obviously you want to be cognizant of mobile users and their data plans so it's important to not preload a huge amount of data (ahem... preloading images). But for stuff like blog posts which have a pretty minimal data footprint, it's great. Maybe on your main page users gravitate towards whatever is newest, so it would make sense to preload the first few items. Or in an article maybe there's a list of related articles or articles by the same author. Instead of making the user wait for more content when they finish something, why not load it while they're reading?</p>
         <p>Using sessionStorage is the key, since you can save preloaded data locally and access it for the duration of the user's session. </p>
       </div>
       <div class="navigation">
-        <p><a class="splink-link" href="/pages/how-it-works.html">Next: How It Works</a></p>
-        <p><a class="splink-link" href="/index.html">Previous: Introduction</a></p>
+        <p><a class="gofer-link" href="/gofer.js/pages/how-it-works.html">Next: How It Works</a></p>
+        <p><a class="gofer-link" href="/gofer.js/index.html">Previous: Introduction</a></p>
       </div>
       <p class="outside"></p>
     </div>

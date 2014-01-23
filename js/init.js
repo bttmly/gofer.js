@@ -16,7 +16,7 @@ $(function() {
 		window.location.reload()
 	})
 
-	$("a.splink-link").splink(
+	$("a.gofer-link").gofer(
 	  [{target: "div.content", selector: "same"},
 	  {target: "div.navigation", selector: "same"}],
 	  {
@@ -26,6 +26,6 @@ $(function() {
 	  }
 	);
 
-	$("p.outside").html("This content generated on <code>$(document).ready()</code> from path " + window.location.pathname + " and is outside Splink target elements.")
+	$("p.outside").html("This content generated on <code>$(document).ready()</code> from path " + window.location.pathname + " and is outside Gofer target elements.")
 
 });

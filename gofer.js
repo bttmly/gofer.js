@@ -3,16 +3,6 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
   __slice = [].slice;
 
 (function($) {
-  return $.fn.outerHTML = function(str) {
-    if (str) {
-      return this.before(str).remove();
-    } else {
-      return $("<p>").append(this.eq(0).clone()).html();
-    }
-  };
-})(jQuery);
-
-(function($) {
   var attach, beginPrefetch, config, detatch, fnGofer, goferCache, goferGo, goferLoad, goferOff, handleClick, handlePop, injectScriptTags, makeConfig, prefetch, preloadImages, putAndPush, queueRequest, shiftQueue, storeThisPage, utils;
   config = {};
   makeConfig = function(context, where, options, callback) {

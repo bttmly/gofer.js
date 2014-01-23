@@ -1,10 +1,4 @@
 do ( $ = jQuery ) ->
-  $.fn.outerHTML = ( str ) ->
-    if str then this.before( str ).remove() else $( "<p>" ).append( this.eq(0).clone() ).html()
-
-
-
-do ( $ = jQuery ) ->
 
   # Internal.
   # Config is private
