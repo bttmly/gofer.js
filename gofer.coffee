@@ -44,7 +44,7 @@ do ( $ = jQuery ) ->
     # the DOM element of the target won't be changing, just the innerHTM, so we can cache the elements here for later.
     # if it's an array, it will be an array of objects so, where[0].selector is the first selector, where[0].target is the first target, etc.
     # we need to reference the target elements both sequentially and by name so we store each twice... is there a better way to do this?
-    if typeof where is boolean and where is false
+    if typeof where is "boolean" and where is false
       goferOff()
 
     if typeof where is "string"
