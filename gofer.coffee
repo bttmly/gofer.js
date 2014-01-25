@@ -115,7 +115,7 @@ do ( $ = jQuery ) ->
       if event.which > 1 or event.metaKey or event.ctrlKey or event.shiftKey or event.altKey
         return this
 
-      # This series of conditions are appropriated from pjax.
+      # This series of conditions is appropriated from pjax.
       if this.tagName.toUpperCase() isnt 'A'
         return this
 
@@ -184,11 +184,8 @@ do ( $ = jQuery ) ->
       if window.sessionStorage.getItem( path )?
       else
         queueRequest( path, false )
-      return
 
-    return
-
-  injectScriptTags = ->
+  insertScriptTags = ->
     $( ".script-placeholder" ).each ->
       replacer = $("<script>")
       for key, val of $( this ).data()
@@ -206,7 +203,7 @@ do ( $ = jQuery ) ->
       for partial, i in partials
         config.$targets[partial.target].html( partial.html )
       if config.runScripts
-        injectScriptTags()
+        insertScriptTags()
       if pushIt
         actualPush()
       if config.prefetch
@@ -267,24 +264,21 @@ do ( $ = jQuery ) ->
       success : ( data, status, xhr ) ->
 
         tempArr = []
-        window.goferScripts or= []
         
         $data = $( data )
 
         
         if config.runScripts
-
-          console.log $( data ).find( ".content" )
-          $data.find( "script" ).each (i, el) ->
+          $data.find( "script" ).each ( i, el ) ->
             replacer = $("<div class='script-placeholder'>")
-            $.each this.attributes, ( i, attr ) ->
-              replacer.attr( "data-#{ attr.name }", attr.value )
+            for attribute in this.attributes
+              replacer.data( attribute.name, attribute.value )
             $( this ).replaceWith( replacer )
 
         for selector, i in config.selectors
 
           tempArr[i] = {}
-          tempArr[i].html = $( "<div>" ).append( $data ).find( selector ).html() or "oops"
+          tempArr[i].html = $( "<div>" ).append( $data ).find( selector ).html() or ""
           # tempArr[i].html = $data.find(selector).html()
           tempArr[i].target = config.targets[i].selector
           if not immediate and config.preloadImg
@@ -309,28 +303,19 @@ do ( $ = jQuery ) ->
         
           if config.callback
 
-            targets = for element in config.targets
-              element.selector
+            targets = ( element.selector for element in config.targets )
+              
 
             config.callback( targets, "ajax", status )
 
   preloadImages = ( htmlString ) ->
 
-    images = $( htmlString ).find( "img" )
-    i = 0
-
-    while i < images.length
-      image = images.eq(i)
-      src = image.attr( "src" )
-
+    $( htmlString ).find( "img" ).each ->
+      src = $( this ).src
       unless src in config.imgCache
         img = new Image()
         img.src = src
-        config.imgCache.push(src)
-
-      i++
-
-    return images
+        config.imgCache.push src
 
   # private object
   # max set to 5 by default since most browsers set a limit of 6 ajax requests to the same domain
@@ -402,14 +387,9 @@ do ( $ = jQuery ) ->
 
   if $.support.pjax then attach() else detatch()
 
-  utils = ->
-
-  utils.removeVals = ( arr, vals... ) ->
-    for val in vals
-      if (spot = arr.indexOf(val)) isnt -1
-        arr.splice(spot, 1)
-    return arr
-
-  return
-
-#
+  utils =
+    removeVals : ( arr, vals... ) ->
+      for val in vals
+        if ( spot = arr.indexOf(val) ) isnt -1
+          arr.splice(spot, 1)
+      return arr
