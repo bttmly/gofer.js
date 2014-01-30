@@ -17,8 +17,7 @@ $(function() {
 	})
 
 	$("a.gofer-link").gofer(
-	  [{target: "div.content", selector: "same"},
-	  {target: "div.navigation", selector: "same"}],
+	  ["div.content", "div.navigation"],
 	  {
 	  	prefetch: true, 
 	  	animate: 250,

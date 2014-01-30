@@ -3,6 +3,20 @@ get = window.sessionStorage.getItem
 
 Gofer = window.Gofer or {}
 
+class Gofer.Request extends Object
+
+  constructor : ( options ) ->
+
+  pushQueue : ( p ) ->
+    Gofer.Request.prototype.queue.push( p )
+
+  shiftQueue : ->
+    return Gofer.Request.prototype.queue.shift()
+
+  max : 5
+  queue: []
+  pending: []
+
 class Gofer.Page extends Object
 
   constructor : ( options ) ->

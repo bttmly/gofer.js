@@ -10,6 +10,29 @@ get = window.sessionStorage.getItem;
 
 Gofer = window.Gofer || {};
 
+Gofer.Request = (function(_super) {
+  __extends(Request, _super);
+
+  function Request(options) {}
+
+  Request.prototype.pushQueue = function(p) {
+    return Gofer.Request.prototype.queue.push(p);
+  };
+
+  Request.prototype.shiftQueue = function() {
+    return Gofer.Request.prototype.queue.shift();
+  };
+
+  Request.prototype.max = 5;
+
+  Request.prototype.queue = [];
+
+  Request.prototype.pending = [];
+
+  return Request;
+
+})(Object);
+
 Gofer.Page = (function(_super) {
   __extends(Page, _super);
 

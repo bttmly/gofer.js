@@ -1,7 +1,7 @@
 $body = $( "body" )
-requestQueue = []
-pendingRequests = []
-maxRequests = 5
+Gofer.requestQueue = []
+Gofer.pendingRequests = []
+Gofer.maxRequests = 5
 
 goferLinks = ->
 	return $( Gofer.config.linkSelector )
@@ -11,6 +11,9 @@ goferPaths = ->
 		a.pathname
 
 Gofer = window.Gofer or {}
+
+Gofer.config = {}
+Gofer.pages = {}
 
 # Gofer.fnGofer is what is called when you run $(".links").gofer()
 # thus, Gofer.fnGofer, "this" referrs to .links 
@@ -69,6 +72,8 @@ Gofer.clickHandler =  ( event, link ) ->
 	else if window.sessionStorage.getItem( path )
 		Gofer.pages[path] = new Gofer.Page
 			url: path
+
+		Gofer.pages[path]
 		.retrieve()
 		.renderAll()
 
@@ -76,8 +81,10 @@ Gofer.clickHandler =  ( event, link ) ->
 	else
 		Gofer.pages[path] = new Gofer.Page
 			url: path
+
+		Gofer.pages[path]
 		.load()
-		.then this.build()
+		.then this.renderAll()
 
 Gofer.loadLinks = ->
 	for path, i in goferPaths()
@@ -89,12 +96,15 @@ Gofer.loadLinks = ->
 			if window.sessionStorage.getItem( path )
 				Gofer.pages[path] = new Gofer.Page
 					url: path
-				.retrieve()
+
+				Gofer.pages[path].retrieve()
 
 			else
 				Gofer.pages[path] = new Gofer.Page
 					url: path
-				.load()
+
+				Gofer.pages[path].load()
+				
 
 # Only retains in memory the pages that might be navigated to from this page
 # Other pages sent to sessionStorage
@@ -138,3 +148,5 @@ $.subscribe "gofer.renderAll", ( event, page ) ->
 	Gofer.loadLinks()
 
 
+
+$.fn.gofer = Gofer.fnGofer
