@@ -102,6 +102,7 @@ do ( $ = jQuery ) ->
 
   fnGofer = ( where, options, callback ) ->
     # Passing false as the first argument will turn off gofer.
+    
     #   Turn off bindings and finish.
     if typeof where is "boolean" and where is false
       goferOff()
@@ -245,7 +246,7 @@ do ( $ = jQuery ) ->
   goferLoad = ( path, immediate ) ->
 
     if immediate
-      config.$html.addClass(config.loadingClass)
+      config.$html.addClass( config.loadingClass )
 
     $.ajax
       url      : path
@@ -270,7 +271,7 @@ do ( $ = jQuery ) ->
         
         if config.runScripts
           $data.find( "script" ).each ( i, el ) ->
-            replacer = $("<div class='script-placeholder'>")
+            replacer = $( "<div class='script-placeholder'>" )
             for attribute in this.attributes
               replacer.data( attribute.name, attribute.value )
             $( this ).replaceWith( replacer )
