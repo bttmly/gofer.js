@@ -150,7 +150,7 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
     return $links.each(function(i) {
       var path;
       path = this.pathname;
-      if (window.sessionStorage.getItem(path) != null) {
+      if (window.sessionStorage.getItem(path)) {
 
       } else {
         return queueRequest(path, false);

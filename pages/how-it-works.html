@@ -4,61 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no">
     <link rel="stylesheet" href="/gofer.js/css/splink-pages.css">
-    <script src="//use.edgefonts.net/open-sans.js"></script>
-    <script src="//use.edgefonts.net/source-code-pro:n4,n7.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/7.4/highlight.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/7.4/lang/xml.min.js"></script>
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/7.4/styles/xcode.min.css">
   </head>
   <body>
     <div class="wrapper">
-      <h1>Splink</h1>
+      <h1>Gofer</h1>
       <div class="content">
         <h2>How it Works</h2>
-        <p>Take this HTML document as an example: </p>
-        <pre><code>
-            &lt;head&gt;
-            	&lt;!-- a bunch of stuff in the head --&gt;
-            &lt;/head&gt;
-             
-            &lt;body&gt;
-            	&lt;h1&gt;Blog&lt;/h1&gt;
-             
-            	&lt;article class="blog-post"&gt;
-            		&lt;h2&gt;Blog Post&lt;/h2&gt;
-            		&lt;p&gt;
-            			&lt;!-- the content of the blog post --&gt;
-            		&lt;/p&gt;
-            	&lt;/article&gt;
-             
-            	&lt;nav class="post-navigation"&gt;
-            		&lt;a class="splink-link" href="/posts/this-is-the-post-name"&gt;Previous Post&lt;/a&gt;
-            		&lt;a class="splink-link" href="/posts/another-post-name"&gt;Next Post&lt;/a&gt;
-            	&lt;/nav&gt;
-             
-            	&lt;footer&gt;
-            		&lt;p&gt;
-            			Find me on
-            			&lt;a href="http://github.com"&gt;Github&lt;/a&gt; or 
-            			&lt;a href="http://twitter.com"&gt;Twitter&lt;/a&gt;
-            		&lt;/p&gt;
-            		&lt;p&gt;
-            			&copy; 2013 - Blog Author
-            		&lt;/p&gt;
-            	&lt;/footer&gt;
-             
-            &lt;/body&gt;</code></pre>
-        <p>The rest of your blog posts are structured the same way, namely with the content in an element that matches the CSS selector <code>article.blog-post</code>, and the navigation in <code>nav.post-navigation</code>. The footer stays the same, as does the <code>&lt;h1&rt;</code> at the top. So we're targeting <code>article.blog-post</code> and <code>nav.post-navigation</code>. The links that take us from page to page are in the nav element and have the class .splink-link. So the plugin usage in this case would be:</p>
-        <pre><code>
-            $("a.splink-link").splink(
-              [{target: "article.blog-post", selector: "same"},
-              {target: "nav.post-navigation", selector: "same"}],
-              {
-              	prefetch: true, 
-              	animate: 250,
-              	runScripts: true
-              }
-            );</code></pre>
+        <p>The rest of your blog posts are structured the same way, namely with the content in an element that matches the CSS selector <code>article.blog-post</code>, and the navigation in <code>nav.post-navigation</code>. The footer stays the same, as does the <code>&lt;h1&gt;</code> at the top. So we're targeting <code>article.blog-post</code> and <code>nav.post-navigation</code>. The links that take us from page to page are in the nav element and have the class .splink-link. So the plugin usage in this case would be:</p>
       </div>
       <div class="navigation">
         <p><a class="gofer-link" href="/gofer.js/pages/big-page.html">Next: Massive Page</a></p>
@@ -66,12 +18,11 @@
       </div>
       <p class="outside"></p>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-    <script src="/gofer.js/gofer.js"></script>
+    <script src="/gofer.js/js/jquery-2.1.0.min.js"></script>
+    <script src="/gofer.js/gofer/pubsub.js"></script>
+    <script src="/gofer.js/gofer/util.js"></script>
+    <script src="/gofer.js/gofer/core.js"></script>
+    <script src="/gofer.js/gofer/gofer-classes.js"></script>
     <script src="/gofer.js/js/init.js"></script>
-    <script>
-      hljs.initHighlightingOnLoad();
-      
-    </script>
   </body>
 </html>

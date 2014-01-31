@@ -182,7 +182,7 @@ do ( $ = jQuery ) ->
 
     $links.each ( i ) ->
       path = this.pathname
-      if window.sessionStorage.getItem( path )?
+      if window.sessionStorage.getItem( path )
       else
         queueRequest( path, false )
 

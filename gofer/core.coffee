@@ -1,40 +1,40 @@
-$body = $( "body" )
-Gofer.requestQueue = []
-Gofer.pendingRequests = []
-Gofer.maxRequests = 5
-
-goferLinks = ->
-	return $( Gofer.config.linkSelector )
-
-goferPaths = ->
-	for a in goferLinks()
-		a.pathname
-
 Gofer = window.Gofer or {}
 
-Gofer.config = {}
+Gofer.goferLinks = goferLinks = ->
+  return $( Gofer.config.linkSelector )
+
+Gofer.goferPaths = goferPaths = ->
+  for a in goferLinks()
+    a.pathname
+
+Gofer.config =
+  preloadImages : true
+
 Gofer.pages = {}
+
+Gofer.imageCache = []
 
 # Gofer.fnGofer is what is called when you run $(".links").gofer()
 # thus, Gofer.fnGofer, "this" referrs to .links 
 Gofer.fnGofer = ( targets, options ) ->
 
-	Gofer.config.linkSelector = this.selector
-	Gofer.config.contentTargets = targets
+  Gofer.config.linkSelector = this.selector
+  Gofer.config.contentTargets = targets
 
-	switch Gofer.util.getType( targets )
-		when "boolean"
-			if not targets
-				Gofer.goferOff()
-				return this
-		when "array"
-			Gofer.config.targets = targets
-		when "string"
-			Gofer.config.targets = [targets]
+  switch Gofer.util.getType( targets )
+    when "boolean"
+      if not targets
+        Gofer.goferOff()
+        return this
+    when "array"
+      Gofer.config.targets = targets
+    when "string"
+      Gofer.config.targets = [targets]
 
-	Gofer.loadLinks()
+  Gofer.loadLinks()
+  Gofer.buildPageFromDOM()
 
-	$body.on "click", Gofer.config.linkSelector, ( event ) ->
+  $( "body" ).on "click", Gofer.config.linkSelector, ( event ) ->
     # Not the types of clicks we want.
     if event.which > 1 or event.metaKey or event.ctrlKey or event.shiftKey or event.altKey
       return this
@@ -59,93 +59,150 @@ Gofer.fnGofer = ( targets, options ) ->
 
     Gofer.clickHandler( event, this )
 
+  $( window ).on "popstate.gofer", ( event ) ->
+    Gofer.popStateHandler( event )
+
+Gofer.buildPageFromDOM = ->
+  path = window.location.pathname
+  page = new Gofer.Page path
+
+  page.build $( "html" )[0].outerHTML
+
+  return Gofer.pages[path] = page
+
+
 
 Gofer.clickHandler =  ( event, link ) ->
 
-	path = link.pathname
+  path = link.pathname
 
-	# if this matches, we have the page in memory
-	if Gofer.pages[path]?.fragments
-		Gofer.pages[path].renderAll()
+  # Gofer.config.beforeRender()
 
-	# if this matches, we have the page in sessionStorage
-	else if window.sessionStorage.getItem( path )
-		Gofer.pages[path] = new Gofer.Page
-			url: path
+  # if this matches, we have the page in memory
+  if Gofer.pages[path]?.fragments
+    Gofer.pages[path].renderAll()
 
-		Gofer.pages[path]
-		.retrieve()
-		.renderAll()
+  # if this matches, we have the page in sessionStorage
+  else if window.sessionStorage.getItem( path )
+    Gofer.pages[path] = new Gofer.Page path
 
-	# otherwise, we need to go get it
-	else
-		Gofer.pages[path] = new Gofer.Page
-			url: path
+    Gofer.pages[path]
+    .retrieve()
+    .renderAll()
 
-		Gofer.pages[path]
-		.load()
-		.then this.renderAll()
+  # otherwise, we need to go get it
+  else
+    Gofer.pages[path] = new Gofer.Page path
+
+    Gofer.pages[path]
+    .load()
+    .then this.renderAll()
+
+  # Gofer.config.afterRender()
+
+Gofer.pageByUrl = ( url ) ->
+  if Gofer.pages[url]
+    return Gofer.pages[url]
+
+  else 
+    Gofer.pages[url] = new Gofer.Page url
+
+    if window.sessionStorage.getItem( url )
+      Gofer.pages[url].retrieve()
+
+    else
+      Gofer.pages[url].load()
+
+  return Gofer.pages[url]
+
+Gofer.popStateHandler = ( event ) ->
+
+  console.log event.originalEvent
+
+  if event.originalEvent.state
+    Gofer.pageByUrl( event.originalEvent.state.path ).renderAll()
+
 
 Gofer.loadLinks = ->
-	for path, i in goferPaths()
+  for path, i in goferPaths()
 
-		return if Gofer.config.limit and i > Gofer.config.limit
+    console.log path
 
-		unless Gofer.pages[path]
+    # return if Gofer.config.limit and i > Gofer.config.limit
 
-			if window.sessionStorage.getItem( path )
-				Gofer.pages[path] = new Gofer.Page
-					url: path
+    if not Gofer.pages[path]
 
-				Gofer.pages[path].retrieve()
+      Gofer.pages[path] = new Gofer.Page path
 
-			else
-				Gofer.pages[path] = new Gofer.Page
-					url: path
+      if window.sessionStorage.getItem( path )
+        Gofer.pages[path].retrieve()
 
-				Gofer.pages[path].load()
-				
+      else
+        Gofer.pages[path].load()
+        
 
 # Only retains in memory the pages that might be navigated to from this page
 # Other pages sent to sessionStorage
 Gofer.tidyStorage = ->
 
-	pathsToKeep = goferPaths()
+  pathsToKeep = goferPaths()
 
-	for path, obj of Gofer.pages
-		if Gofer.pages.hasOwnProperty( path ) and path not in pathsToKeep
-				Gofer.pages[path].save
-				delete Gofer.pages[path]
+  for path, obj of Gofer.pages
+    if Gofer.pages.hasOwnProperty( path ) and path not in pathsToKeep
+        Gofer.pages[path].save()
+        delete Gofer.pages[path]
 
-Gofer.requestNext = ->
-	if pendingRequests.length < maxRequests
-		
-		path = requestQueue.shift()
-		pendingRequests.push( path )
+Gofer.tryRequestNext = ->
+  if Gofer.queue.pending().length < Gofer.queue.max()
+    
+    path = Gofer.queue.shiftQueue()
+    Gofer.queue.pushPending( path )
 
-		if not Gofer.pages[path]
-			Gofer.pages[path] = new Gofer.Page
-				url: path
+    if not Gofer.pages[path]
+      Gofer.pages[path] = new Gofer.Page path
 
-		Gofer.pages[path].load()
+    Gofer.pages[path].load()
 
-# whenever a request is queued, see if there are open spots
-$.subscribe "gofer.queueRequest", ( event, page ) ->
-	Gofer.tryRequestNext()
+Gofer.queue = do ->
+  _max = 5
+  _queue = []
+  _pending = []
+  max : -> return _max
+  queue : -> return _queue
+  pending : -> return _pending
 
-# whenever a request is returned, see if there are open spots
-$.subscribe "gofer.loadSuccess", ( event, page ) ->
-	Gofer.util.removeVals requestQueue, page.url
-	Gofer.tryRequestNext()
+  pushQueue : ( path ) ->
+    _queue.push path
+
+  shiftQueue : ->
+    _queue.shift()
+
+  pushPending : ( path ) ->
+    _pending.push path
+
+  removePending : ( path ) ->
+    if ( spot = _pending.indexOf( path ) ) isnt -1
+      _pending.splice( spot, 1 )
+    return _pending
+
+# # whenever a request is queued, see if there are open spots
+# $.subscribe "gofer.queueRequest", ( event, page ) ->
+#   Gofer.tryRequestNext()
+
+# # whenever a request is returned, see if there are open spots
+# $.subscribe "gofer.loadSuccess", ( event, page ) ->
+#   Gofer.queue.removePending page.path
+#   Gofer.tryRequestNext()
 
 # dev
 $.subscribe "gofer", ( event, data... ) ->
-	console.log event
+  console.log event
 
 $.subscribe "gofer.renderAll", ( event, page ) ->
-	page.addToHistory()
-	Gofer.tidyStorage()
-	Gofer.loadLinks()
+  console.log "renderAll #{ page.url }"
+  page.addToHistory()
+  Gofer.tidyStorage()
+  Gofer.loadLinks()
 
 
 
