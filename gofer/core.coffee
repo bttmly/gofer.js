@@ -1,9 +1,9 @@
 Gofer = window.Gofer or {}
 
-Gofer.goferLinks = goferLinks = ->
+goferLinks = ->
   return $( Gofer.config.linkSelector )
 
-Gofer.goferPaths = goferPaths = ->
+goferPaths = ->
   for a in goferLinks()
     a.pathname
 
@@ -18,55 +18,25 @@ Gofer.imageCache = []
 # thus, Gofer.fnGofer, "this" referrs to .links 
 Gofer.fnGofer = ( targets, options ) ->
 
-  Gofer.config.linkSelector = this.selector
-  Gofer.config.contentTargets = targets
-
-  switch Gofer.util.getType( targets )
-    when "boolean"
-      if not targets
-        Gofer.goferOff()
-        return this
-    when "array"
-      Gofer.config.targets = targets
-    when "string"
-      Gofer.config.targets = [targets]
+  # Gofer.buildConfig( targets, options )
 
   Gofer.loadLinks()
   Gofer.buildPageFromDOM()
 
   $( "body" ).on "click", Gofer.config.linkSelector, ( event ) ->
-    # Not the types of clicks we want.
-    if event.which > 1 or event.metaKey or event.ctrlKey or event.shiftKey or event.altKey
-      return this
-
-    # This series of conditions is pilfered from pjax.
-    if this.tagName.toUpperCase() isnt 'A'
-      return this
-    if location.protocol isnt this.protocol
-      return this
-    if location.hostname isnt this.hostname
-      return this
-    if this.hash and this.href.replace( this.hash, '' ) is location.href.replace( location.hash, '' )
-      return this
-    if this.href is location.href + '#'
-      return this
-
-    if Gofer.config.limit
-      active = $( Gofer.config.linkSelector ).slice( 0, limit )
-      return this unless $( this ).is( active )
-
-    event.preventDefault()
 
     Gofer.clickHandler( event, this )
 
   $( window ).on "popstate.gofer", ( event ) ->
     Gofer.popStateHandler( event )
 
+  return this
+
 Gofer.buildPageFromDOM = ->
   path = window.location.pathname
   page = new Gofer.Page path
 
-  page.build $( "html" )[0].outerHTML
+  page.build $( "html" ).outerHTML()
 
   return Gofer.pages[path] = page
 
@@ -74,50 +44,61 @@ Gofer.buildPageFromDOM = ->
 
 Gofer.clickHandler =  ( event, link ) ->
 
+  # Not the types of clicks we want.
+  if event.which > 1 or event.metaKey or event.ctrlKey or event.shiftKey or event.altKey
+    return
+
+  # This series of conditions is pilfered from pjax.
+  if link.tagName.toUpperCase() isnt 'A'
+    return
+  if location.protocol isnt link.protocol
+    return
+  if location.hostname isnt link.hostname
+    return
+  if link.hash and link.href.replace( link.hash, '' ) is location.href.replace( location.hash, '' )
+    return
+  if link.href is location.href + '#'
+    return
+
+  if Gofer.config.limit
+    active = $( Gofer.config.linkSelector ).slice( 0, limit )
+    return unless $( this ).is( active )
+
+  event.preventDefault()
+
   path = link.pathname
 
   # Gofer.config.beforeRender()
 
   # if this matches, we have the page in memory
-  if Gofer.pages[path]?.fragments
-    Gofer.pages[path].renderAll()
+  # if Gofer.pages[path]
+  #   Gofer.pages[path].renderAll()
+  # else 
+  #   Gofer.pages[path] = new Gofer.Page path
+  #   if window.sessionStorage.getItem( path )
+  #     Gofer.pages[path]
+  #     .retrieve()
+  #     .renderAll()
+  #   else
+  #     Gofer.pages[path]
+  #     .load()
+  #     .then Gofer.pages[path].renderAll()
 
-  # if this matches, we have the page in sessionStorage
-  else if window.sessionStorage.getItem( path )
-    Gofer.pages[path] = new Gofer.Page path
-
-    Gofer.pages[path]
-    .retrieve()
-    .renderAll()
-
-  # otherwise, we need to go get it
-  else
-    Gofer.pages[path] = new Gofer.Page path
-
-    Gofer.pages[path]
-    .load()
-    .then this.renderAll()
+  Gofer.pageByUrl( path ).renderAll()
 
   # Gofer.config.afterRender()
 
 Gofer.pageByUrl = ( url ) ->
-  if Gofer.pages[url]
-    return Gofer.pages[url]
-
-  else 
+  if not Gofer.pages[url]
     Gofer.pages[url] = new Gofer.Page url
-
     if window.sessionStorage.getItem( url )
       Gofer.pages[url].retrieve()
-
     else
       Gofer.pages[url].load()
 
   return Gofer.pages[url]
 
 Gofer.popStateHandler = ( event ) ->
-
-  console.log event.originalEvent
 
   if event.originalEvent.state
     Gofer.pageByUrl( event.originalEvent.state.path ).renderAll()
@@ -203,7 +184,6 @@ $.subscribe "gofer.renderAll", ( event, page ) ->
   page.addToHistory()
   Gofer.tidyStorage()
   Gofer.loadLinks()
-
 
 
 $.fn.gofer = Gofer.fnGofer

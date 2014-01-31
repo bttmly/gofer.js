@@ -27,3 +27,6 @@ Gofer.util =
       '[object RegExp]': 'regexp'
       '[object Object]': 'object'
     return classToType[Object.prototype.toString.call( obj )]
+
+$.fn.outerHTML = ->
+	return $('<div>').append( $( this ).clone() ).html()

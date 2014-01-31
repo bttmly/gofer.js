@@ -42,3 +42,7 @@ Gofer.util = {
     return classToType[Object.prototype.toString.call(obj)];
   }
 };
+
+$.fn.outerHTML = function() {
+  return $('<div>').append($(this).clone()).html();
+};
