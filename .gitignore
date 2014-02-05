@@ -2,3 +2,4 @@
 *.jade
 jade
 coffee
+node_modules

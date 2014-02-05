@@ -1,6 +1,4 @@
-Gofer = window.Gofer or {}
-
-Gofer.util =
+Gofer.util = util =
 	# _.wrap from underscore.js
 	wrap : ( func, wrapper ) ->
 	    return ->
@@ -27,6 +25,3 @@ Gofer.util =
       '[object RegExp]': 'regexp'
       '[object Object]': 'object'
     return classToType[Object.prototype.toString.call( obj )]
-
-$.fn.outerHTML = ->
-	return $('<div>').append( $( this ).clone() ).html()
