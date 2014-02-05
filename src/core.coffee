@@ -1,8 +1,8 @@
 window.Gofer = 
   pages : {}
   defaults :
-    beforeRender : $.noop
-    afterRender : $.noop
+    beforeRender : -> $ {}
+    afterRender : -> $ {}
     customHeaders : {}
     customData : {}
     limit: 0
@@ -27,7 +27,7 @@ Gofer.fnGofer = ( targets, options ) ->
 
   $.extend( Gofer.config, Gofer.defaults, options )
 
-  # Gofer.buildConfig( targets, options )
+  # Gofer.buildConfig( this.selector targets, options )
 
   # start making AJAX requests for gofer links on the current page
   Gofer.loadLinks()
@@ -47,6 +47,8 @@ Gofer.fnGofer = ( targets, options ) ->
 
   # return jQuery object
   return this
+
+Gofer.buildConfig = ( selector, targets, options ) ->
 
 # creates an entry in Gofer.pages for the current page
 # returns the Gofer Page object for the current page
@@ -93,12 +95,11 @@ Gofer.clickHandler =  ( event, link ) ->
 
   console.log path
 
-  Gofer.config.beforeRender()
+  Gofer.config.beforeRender(Gofer.config.contentTargets.join(", ")).queue ->
 
-  window.history.pushState( path: path, "", link.href )
-  Gofer.pageByUrl( path, "renderAll" )
-
-  Gofer.config.afterRender()
+    window.history.pushState( path: path, "", link.href )
+    Gofer.pageByUrl( path, "renderAll" )
+    Gofer.config.afterRender Gofer.config.contentTargets.join(", ")
 
 Gofer.pageByUrl = ( url, method ) ->
 

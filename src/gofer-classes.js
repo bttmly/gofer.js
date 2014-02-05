@@ -34,8 +34,6 @@
     Page.prototype.retrieve = function() {
       var fragment, obj, _i, _len;
       obj = JSON.parse(window.sessionStorage.getItem(this.url));
-      console.log("retrieving " + this.url);
-      console.log(obj);
       for (_i = 0, _len = obj.length; _i < _len; _i++) {
         fragment = obj[_i];
         this.add({
@@ -51,6 +49,7 @@
 
     Page.prototype.renderAll = function() {
       var fragment, _i, _len, _ref;
+      $("title").html(this.title);
       _ref = this.fragments;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         fragment = _ref[_i];
@@ -73,7 +72,7 @@
       if (Gofer.config.preloadImages === true) {
         frag.preloadImages();
       }
-      $.publish("gofer.pageAdd", [this, frag]);
+      $.publish("gofer.pageAdd", frag);
       return frag;
     };
 
@@ -81,6 +80,7 @@
       var $html, fragmentHtml, target, _i, _len, _ref;
       this.raw = html;
       $html = $(html);
+      this.title = $html.findIn("title").html();
       _ref = this.targets;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         target = _ref[_i];

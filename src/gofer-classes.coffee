@@ -16,8 +16,6 @@ Gofer.Page = class Page
 
   retrieve : =>
     obj = JSON.parse window.sessionStorage.getItem this.url
-    console.log "retrieving #{ this.url }"
-    console.log obj
     for fragment in obj
       this.add
         parent: this
@@ -29,6 +27,9 @@ Gofer.Page = class Page
     return this
 
   renderAll : =>
+
+    $( "title" ).html this.title
+
     for fragment in this.fragments
       fragment.render()
 
@@ -47,12 +48,13 @@ Gofer.Page = class Page
     if Gofer.config.preloadImages is true
       frag.preloadImages()
 
-    $.publish "gofer.pageAdd", [this, frag]
+    $.publish "gofer.pageAdd", frag
     return frag
 
   build : ( html ) =>
     this.raw = html
-    $html = $( html ) 
+    $html = $( html )
+    this.title = $html.findIn( "title" ).html()
     for target in this.targets
       fragmentHtml = $html.find( target )
       this.add

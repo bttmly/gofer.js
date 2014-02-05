@@ -6,8 +6,12 @@
   window.Gofer = {
     pages: {},
     defaults: {
-      beforeRender: $.noop,
-      afterRender: $.noop,
+      beforeRender: function() {
+        return $({});
+      },
+      afterRender: function() {
+        return $({});
+      },
       customHeaders: {},
       customData: {},
       limit: 0
@@ -46,6 +50,8 @@
     });
     return this;
   };
+
+  Gofer.buildConfig = function(selector, targets, options) {};
 
   Gofer.buildPageFromDOM = function() {
     var page, path;
@@ -90,12 +96,13 @@
     event.preventDefault();
     path = link.pathname;
     console.log(path);
-    Gofer.config.beforeRender();
-    window.history.pushState({
-      path: path
-    }, "", link.href);
-    Gofer.pageByUrl(path, "renderAll");
-    return Gofer.config.afterRender();
+    return Gofer.config.beforeRender(Gofer.config.contentTargets.join(", ")).queue(function() {
+      window.history.pushState({
+        path: path
+      }, "", link.href);
+      Gofer.pageByUrl(path, "renderAll");
+      return Gofer.config.afterRender(Gofer.config.contentTargets.join(", "));
+    });
   };
 
   Gofer.pageByUrl = function(url, method) {
