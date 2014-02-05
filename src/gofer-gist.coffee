@@ -1,11 +1,10 @@
-Gofer.Fragment::getGists : =>
+Gofer.Fragment::getGists = =>
 
     fragment = this
     fragment.gists = []
     gistIds = []
-    $html = $ "<div>#{ fragment.$html.outerHTML() }</div>"
 
-    $html
+    fragment.$el
     .find( "script[src^='https://gist.github.com']" )
     .each ->
       urlPieces = this.src.split( "/" )
@@ -14,13 +13,14 @@ Gofer.Fragment::getGists : =>
 
       gistIds.push id
 
-    fragment.$html = $ $html.html()
-
     for id in gistIds
-      console.log id
       fragment.gists.push new Gofer.Gist
         id: id
         parent: fragment
+
+    $.subscribe "gofer.pageRenderAll", ( event, page ) ->
+      if page.url is fragment.parent.url
+        gist.render() for gist in fragment.gists
 
 Gofer.Gist = class Gist
   constructor : ( options ) ->
