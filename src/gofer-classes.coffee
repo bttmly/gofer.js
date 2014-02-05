@@ -1,7 +1,5 @@
 Gofer.Page = class Page
 
-  this.CLASS = "Page"
-
   constructor : ( url ) ->
     this.url = url
     this.fragments = []
@@ -17,10 +15,14 @@ Gofer.Page = class Page
     return this
 
   retrieve : =>
-    for fragment in JSON.parse window.sessionStorage.getItem this.url
+    obj = JSON.parse window.sessionStorage.getItem this.url
+    console.log "retrieving #{ this.url }"
+    console.log obj
+    for fragment in obj
       this.add
         parent: this
         html: fragment.html
+        $el: $( fragment.html )
         target: fragment.target
 
     $.publish "gofer.pageRetrieve", [this]
@@ -91,15 +93,15 @@ Gofer.Fragment = class Fragment
 
     { @parent, @html, @target, @$el } = options
 
-    this.$target = $( this.target )
+    this.$target = -> $( this.target )
     this.$html = $( this.html )
 
   render : =>
     # this.$target.empty().append this.$html
-    this.$target.replaceWith this.$el
+    this.$target().replaceWith this.$el
 
-    if this.gists?.length
-      gist.render() for gist in this.gists
+    # if this.gists?.length
+    #   gist.render() for gist in this.gists
 
     return this
 

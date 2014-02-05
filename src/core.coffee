@@ -35,6 +35,8 @@ Gofer.fnGofer = ( targets, options ) ->
   # build a Gofer Page object from the current page.
   Gofer.buildPageFromDOM()
 
+  Gofer.makeInitialHistoryEntry()
+
   # event handling for click
   $( "body" ).on "click", Gofer.config.linkSelector, ( event ) ->
     Gofer.clickHandler( event, this )
@@ -93,6 +95,7 @@ Gofer.clickHandler =  ( event, link ) ->
 
   Gofer.config.beforeRender()
 
+  window.history.pushState( path: path, "", link.href )
   Gofer.pageByUrl( path, "renderAll" )
 
   Gofer.config.afterRender()
@@ -102,16 +105,13 @@ Gofer.pageByUrl = ( url, method ) ->
   if not Gofer.pages[url]
     Gofer.pages[url] = new Gofer.Page url
     if window.sessionStorage.getItem( url )
-     Gofer.pages[url].retrieve()
+     return Gofer.pages[url].retrieve()
      if method
-      Gofer.pages[url][method]()
+      return Gofer.pages[url][method]()
     else
-      "loading......."
       req = Gofer.pages[url].load()
       if method
         req.then ->
-          console.log "then..."
-          console.log this
           Gofer.pages[url][method]()
 
   else if method
@@ -123,7 +123,7 @@ Gofer.pageByUrl = ( url, method ) ->
 Gofer.cachePages = ( urls ) ->
   if util.getType urls is "string"
     urls = [urls]
-  else if type of urls isnt "array"
+  else if util.getType urls isnt "array"
     return
 
   for url in urls
@@ -131,9 +131,17 @@ Gofer.cachePages = ( urls ) ->
 
 Gofer.popStateHandler = ( event ) ->
 
-  if event.originalEvent.state
-    Gofer.pageByUrl( event.originalEvent.state.path ).renderAll()
+  Gofer.popEvents = Gofer.popEvents or []
+  Gofer.popEvents.push event
 
+  if event.originalEvent.state
+    p = Gofer.pageByUrl( event.originalEvent.state.path )
+    console.log "popping to..."
+    console.log p
+    p.renderAll()
+
+Gofer.makeInitialHistoryEntry = ->
+  window.history.replaceState( path: window.location.pathname, "", window.location.pathname )
 
 Gofer.loadLinks = ->
   for path, i in goferPaths()
@@ -224,7 +232,7 @@ Gofer.tidyStorage = ->
 
 $.subscribe "gofer.pageRenderAll", ( event, page ) ->
   console.log "pageRenderAll #{ page.url }"
-  page.addToHistory()
+  # page.addToHistory()
   Gofer.tidyStorage()
   Gofer.loadLinks()
 

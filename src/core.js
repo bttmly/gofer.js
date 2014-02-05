@@ -37,6 +37,7 @@
     $.extend(Gofer.config, Gofer.defaults, options);
     Gofer.loadLinks();
     Gofer.buildPageFromDOM();
+    Gofer.makeInitialHistoryEntry();
     $("body").on("click", Gofer.config.linkSelector, function(event) {
       return Gofer.clickHandler(event, this);
     });
@@ -90,6 +91,9 @@
     path = link.pathname;
     console.log(path);
     Gofer.config.beforeRender();
+    window.history.pushState({
+      path: path
+    }, "", link.href);
     Gofer.pageByUrl(path, "renderAll");
     return Gofer.config.afterRender();
   };
@@ -99,17 +103,14 @@
     if (!Gofer.pages[url]) {
       Gofer.pages[url] = new Gofer.Page(url);
       if (window.sessionStorage.getItem(url)) {
-        Gofer.pages[url].retrieve();
+        return Gofer.pages[url].retrieve();
         if (method) {
           return Gofer.pages[url][method]();
         }
       } else {
-        "loading.......";
         req = Gofer.pages[url].load();
         if (method) {
           return req.then(function() {
-            console.log("then...");
-            console.log(this);
             return Gofer.pages[url][method]();
           });
         }
@@ -125,7 +126,7 @@
     var url, _i, _len, _results;
     if (util.getType(urls === "string")) {
       urls = [urls];
-    } else if (type in urls !== "array") {
+    } else if (util.getType(urls !== "array")) {
       return;
     }
     _results = [];
@@ -137,9 +138,21 @@
   };
 
   Gofer.popStateHandler = function(event) {
+    var p;
+    Gofer.popEvents = Gofer.popEvents || [];
+    Gofer.popEvents.push(event);
     if (event.originalEvent.state) {
-      return Gofer.pageByUrl(event.originalEvent.state.path).renderAll();
+      p = Gofer.pageByUrl(event.originalEvent.state.path);
+      console.log("popping to...");
+      console.log(p);
+      return p.renderAll();
     }
+  };
+
+  Gofer.makeInitialHistoryEntry = function() {
+    return window.history.replaceState({
+      path: window.location.pathname
+    }, "", window.location.pathname);
   };
 
   Gofer.loadLinks = function() {
@@ -176,7 +189,6 @@
 
   $.subscribe("gofer.pageRenderAll", function(event, page) {
     console.log("pageRenderAll " + page.url);
-    page.addToHistory();
     Gofer.tidyStorage();
     return Gofer.loadLinks();
   });

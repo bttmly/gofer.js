@@ -4,8 +4,6 @@
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Gofer.Page = Page = (function() {
-    Page.CLASS = "Page";
-
     function Page(url) {
       this.addToHistory = __bind(this.addToHistory, this);
       this.load = __bind(this.load, this);
@@ -34,13 +32,16 @@
     };
 
     Page.prototype.retrieve = function() {
-      var fragment, _i, _len, _ref;
-      _ref = JSON.parse(window.sessionStorage.getItem(this.url));
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        fragment = _ref[_i];
+      var fragment, obj, _i, _len;
+      obj = JSON.parse(window.sessionStorage.getItem(this.url));
+      console.log("retrieving " + this.url);
+      console.log(obj);
+      for (_i = 0, _len = obj.length; _i < _len; _i++) {
+        fragment = obj[_i];
         this.add({
           parent: this,
           html: fragment.html,
+          $el: $(fragment.html),
           target: fragment.target
         });
       }
@@ -138,20 +139,14 @@
       this.preloadImages = __bind(this.preloadImages, this);
       this.render = __bind(this.render, this);
       this.parent = options.parent, this.html = options.html, this.target = options.target, this.$el = options.$el;
-      this.$target = $(this.target);
+      this.$target = function() {
+        return $(this.target);
+      };
       this.$html = $(this.html);
     }
 
     Fragment.prototype.render = function() {
-      var gist, _i, _len, _ref, _ref1;
-      this.$target.replaceWith(this.$el);
-      if ((_ref = this.gists) != null ? _ref.length : void 0) {
-        _ref1 = this.gists;
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          gist = _ref1[_i];
-          gist.render();
-        }
-      }
+      this.$target().replaceWith(this.$el);
       return this;
     };
 
