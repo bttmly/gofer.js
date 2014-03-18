@@ -54,11 +54,9 @@ Gofer.buildConfig = ( selector, targets, options ) ->
 # returns the Gofer Page object for the current page
 Gofer.buildPageFromDOM = ->
   path = window.location.pathname
-  page = new Gofer.Page path
-  page.build $( "html" ).outerHTML()
+  page = new Gofer.Page( path )
+  page.build( $( "html" ).outerHTML() )
   return Gofer.pages[path] = page
-
-
 
 Gofer.clickHandler =  ( event, link ) ->
 

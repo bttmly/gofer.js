@@ -1,4 +1,4 @@
-# add getGists() method to page fragments
+# add getGists() method to Fragment class
 Gofer.Fragment::getGists = ->
 
     fragment = this
@@ -10,10 +10,8 @@ Gofer.Fragment::getGists = ->
     .each ->
       urlPieces = this.src.split( "/" )
       id = urlPieces[ urlPieces.length - 1 ].split( "." )[0]
-      #$( this ).attr( "data-gist-id", id )
       $( this ).replaceWith( "<div data-gist-id=#{ id }></div>" )
-
-      gistIds.push id
+      gistIds.push( id )
 
     for id in gistIds
       fragment.gists.push new Gofer.Gist
@@ -22,6 +20,7 @@ Gofer.Fragment::getGists = ->
 
     $.subscribe "gofer.pageRenderAll", ( event, page ) ->
       if page.url is fragment.parent.url
+      # if page is fragment.parent
         gist.render() for gist in fragment.gists
 
 # gist class
